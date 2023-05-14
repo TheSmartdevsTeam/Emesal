@@ -1,0 +1,24 @@
+fileFormatVersion: 2
+guid: 36c702b10b8953541aaac7d2c500a5c6
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - audioManager: {instanceID: 0}
+  - weaponAnimation: {instanceID: 0}
+  - shotSound: {fileID: 8300000, guid: 6ecc0d4b62be5435bbcb84912c54eadb, type: 3}
+  - drawSound: {instanceID: 0}
+  - hideSound: {instanceID: 0}
+  - meleeSound: {instanceID: 0}
+  - vaultSound: {instanceID: 0}
+  - normalReloadSound: {instanceID: 0}
+  - completeReloadSound: {instanceID: 0}
+  - startReloadSound: {instanceID: 0}
+  - insertSound: {instanceID: 0}
+  - stopReloadSound: {instanceID: 0}
+  - moveAnimations: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
