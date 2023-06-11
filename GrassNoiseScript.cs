@@ -18,7 +18,7 @@ public class GrassNoiseScript : MonoBehaviour
         if (GetComponent<AudioSource>() != null)
         {
             _AudioSource = GetComponent<AudioSource>();
-            _AudioClip = Resources.Load("Grass Noise") as AudioClip;
+            _AudioClip = Resources.Load<AudioClip>("VegetationSounds/Grass Noise");
         }
 
         _GrassNoiseTimer = 15;

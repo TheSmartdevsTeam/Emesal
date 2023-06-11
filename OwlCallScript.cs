@@ -14,7 +14,7 @@ public class OwlCallScript : MonoBehaviour
         if (GetComponent<AudioSource>() != null)
         {
             _AudioSource = GetComponent<AudioSource>();
-            _AudioClip = Resources.Load("Owl") as AudioClip;
+            _AudioClip = Resources.Load<AudioClip>("Animals/Owl");
         }
         _OwlTimer = 10;
         OwlCall = false;
