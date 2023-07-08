@@ -3,22 +3,25 @@
 public class CharacterInteractionScript : MonoBehaviour
 {
     Camera _CharacterCamera;
+    Vector3 mousePos;
 
     void Update()
     {
         if(Input.GetKeyDown(KeyCode.E))
         {
+            mousePos = Input.mousePosition;
             Interact();
         }
-        
+
     }
     public virtual void Interact()
     {
         _CharacterCamera = Camera.main;
         RaycastHit _CharacterInteractionRayHit;
-        if (Physics.Raycast(transform.position, _CharacterCamera.transform.forward, out _CharacterInteractionRayHit, 1))
+
+        if (Physics.Raycast(transform.position, Input.mousePosition, out _CharacterInteractionRayHit, 1.5f))
         {
-            Item _Item = _CharacterInteractionRayHit.transform.GetComponent<PickupScript>()._Item;
+            _ = _CharacterInteractionRayHit.transform.GetComponent<PickupScript>()._Item;
         }
     }
 

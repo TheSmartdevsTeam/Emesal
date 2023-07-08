@@ -1,50 +1,38 @@
-using JetBrains.Annotations;
-using System;
 using UnityEngine;
-using UnityEngine.UI;
 
-public class Inventory_UI_Master_Script : MonoBehaviour
+public class UIMasterScript : MonoBehaviour, IMyDataManager
 {
     [SerializeField] private _MouseLook _Cursor;
+    GameObject _CharacterUIMasterObject;
+    public GameObject _Player;
     public Transform _CharacterTransform;
     public Camera _CharacterCamera;
     public Animator _CharacterAnimator;
-    public Transform _CharacterSheets;
+    GameObject _CharacterSheets;
     public bool _MouseLookBool;
-    //GameObject _Inventory;
-    public Transform _SlotsParent;
+    public bool _Subtitles;
+    GameObject _CursorCanvas;
+    Transform _SlotsParent;
     InventorySlot_Script[] _slots;
     GameObject _Inventory;
-    public GameObject _SkillsGameObject;
+    GameObject _SkillsGameObject;
     InventoryScript inventory;
     InventorySlot_Script iss = new InventorySlot_Script();
-    public Material _FireMaterial;
-    public CanvasRenderer _CanvasRendererSkills;
-    public GameObject _FireBackground;
-    public GameObject _FireSkillTree;
-    public GameObject _EarthSkillTree;
-    public GameObject _WaterSkillTree;
-    public GameObject _AirSkillTree;
-    public GameObject _SkillsElements;
+    GameObject _FireSkillTree;
+    GameObject _EarthSkillTree;
+    GameObject _WaterSkillTree;
+    GameObject _AirSkillTree;
+    GameObject _SkillsElements;
     void Start()
     {
+        _CharacterUIMasterObject = transform.parent.gameObject;
+        _Player = GameObject.FindGameObjectWithTag("Player");
         #region Cursor SetUp
         _Cursor = gameObject.AddComponent<_MouseLook>();
-        
-        _Cursor.XSensitivity = 2;
-        _Cursor.YSensitivity = 2;
-        _Cursor.MinimumX = -70;
-        _Cursor.MaximumX = 70;
-        _Cursor.clampVerticalRotation = true;
-        _Cursor.smooth = false;
-        _Cursor.smoothTime = 5;
-
-        //_Cursor.lockCursor = true;
-        //_Cursor.SetCursorLock(true);
-
-        //_CursorLastLocation = Input.mousePosition;
         _Cursor.lockCursor = true;
         _Cursor.SetCursorLock(true);
+        _CursorCanvas = _CharacterUIMasterObject.transform.GetChild(3).gameObject;
+        Cursor.visible = false;
         #endregion
 
         _CharacterCamera = Camera.main;
@@ -53,24 +41,31 @@ public class Inventory_UI_Master_Script : MonoBehaviour
 
         inventory = InventoryScript.instance;
         inventory.onItemChangedCallBack += UpdateUI;
-        _SlotsParent = transform.GetChild(0).GetChild(1).GetChild(3);
+        _SlotsParent = _CharacterUIMasterObject.transform.GetChild(0).GetChild(0).GetChild(1);
         _slots = _SlotsParent.GetComponentsInChildren<InventorySlot_Script>();
         _FireSkillTree = transform.GetChild(2).GetChild(0).GetChild(0).GetChild(2).gameObject;
         _EarthSkillTree = transform.GetChild(2).GetChild(0).GetChild(0).GetChild(3).gameObject;
         _WaterSkillTree = transform.GetChild(2).GetChild(0).GetChild(0).GetChild(4).gameObject;
         _AirSkillTree = transform.GetChild(2).GetChild(0).GetChild(0).GetChild(5).gameObject;
         _SkillsElements = _SkillsGameObject.transform.GetChild(0).GetChild(0).GetChild(1).gameObject;
+        _CharacterSheets = _CharacterUIMasterObject.transform.GetChild(0).GetChild(1).gameObject;
+
+        
     }
 
     private void UpdateUI()
     {
         Debug.Log("UPDATING UI");
-        for (int i=0;i<_slots.Length;i++)
+        for (int i=0;i<_slots.Length-1;i++)
         {
             Debug.Log("Items in inventory: " + inventory.items.Count);
             if(i<inventory.items.Count)
             {
-                _slots[i].AddItem(inventory.items[i]);
+                if (inventory.items[i] != null)
+                {
+                    _slots[i].AddItem(inventory.items[i]);
+                }
+                
                 if (_slots[i].transform.GetChild(0).GetChild(3).gameObject.activeSelf)
                 {
                     _slots[i].SetActivePanel(true);
@@ -90,55 +85,74 @@ public class Inventory_UI_Master_Script : MonoBehaviour
 
         }
     }
-
     void Update()
     {
         CheckInventory();
+        CheckUIActive();
+        if (CheckUIActive())
+        {
+            EnableCursor();
+            UICullingMask();
+        }
+        else
+        {
+            DisableCursor();
+            EverythingCullingMask();
+        }
     }
-
+    public bool CheckUIActive()
+    {
+        bool var = false;
+        for (int i = 0; i < _CharacterUIMasterObject.transform.GetChild(0).childCount; i++)
+        {
+            if (_CharacterUIMasterObject.transform.GetChild(0).GetChild(i).gameObject.activeSelf)
+            {
+                var = true;
+            }
+        }
+        return var;
+    }
+    public void EnableCursor()
+    {
+        Cursor.lockState = CursorLockMode.None;
+        _CursorCanvas.SetActive(true);
+    }
+    public void DisableCursor()
+    {
+        Cursor.lockState = CursorLockMode.Locked;
+        _CursorCanvas.SetActive(false);
+    }
+    public void UICullingMask()
+    {
+        _CharacterCamera.cullingMask = LayerMask.NameToLayer("UI");
+    }
+    public void EverythingCullingMask()
+    {
+        _CharacterCamera.cullingMask = LayerMask.NameToLayer("Everything");
+    }
     public void CheckInventory()
     {
         if (Input.GetKeyDown(KeyCode.Tab) && _Inventory.activeSelf == false)
         {
-            
             transform.gameObject.GetComponentInChildren<InventoryScript>().gameObject.SetActive(true);
             _CharacterAnimator.SetBool("Backpack", true);
-            Debug.Log("Inventory ON");
             _Inventory.gameObject.SetActive(true);
             _CharacterSheets.gameObject.SetActive(false);
             _SkillsGameObject.gameObject.SetActive(false);
-            //Cursor.visible = true;
-            //_Cursor.Init(transform, Camera.main.transform);
-            //_Cursor.LookRotation(transform, Camera.main.transform);
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
-
-
+            _Player.transform.GetChild(2).gameObject.SetActive(false); ;
             _MouseLookBool = true;
-            _CharacterCamera.cullingMask = LayerMask.NameToLayer("UI");
-            
         }
         else if (Input.GetKeyDown(KeyCode.Tab))
         {
             _CharacterAnimator.SetBool("Backpack", false);
-            Debug.Log("Inventory OFF");
             _Inventory.gameObject.SetActive(false);
-            //_Cursor.SetCursorLock(true);
-            //Cursor.visible = false;
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
-
-
+            _Player.transform.GetChild(2).gameObject.SetActive(true);
             _MouseLookBool = false;
-            _CharacterCamera.cullingMask = LayerMask.NameToLayer("Everything");
-            
             iss.InventoryClosed();
-            
-
         }
-        else if(_Inventory.gameObject.activeInHierarchy == true)
+        else if (_Inventory.gameObject.activeInHierarchy == true)
         {
-            if(Input.GetKeyDown(KeyCode.Q))
+            if (Input.GetKeyDown(KeyCode.Q))
             {
                 _Inventory.gameObject.SetActive(false);
                 _CharacterSheets.gameObject.SetActive(false);
@@ -182,15 +196,9 @@ public class Inventory_UI_Master_Script : MonoBehaviour
                 _CharacterSheets.gameObject.SetActive(false);
                 _SkillsGameObject.gameObject.SetActive(false);
             }
-        }
-        else
-        {
-            _Inventory.SetActive(false);
-        }
-
-
+        
     }
-
+    }
     public void CheckSwapInventory()
     {
         
@@ -216,43 +224,41 @@ public class Inventory_UI_Master_Script : MonoBehaviour
             }
         }
     }
-
     public  bool _GetMouseLookBool()
     {
         return _MouseLookBool;
     }
-
-    private void RotateView()
-    {
-        _Cursor.Init(_CharacterTransform, _CharacterCamera.transform);
-        _Cursor.LookRotation(_CharacterTransform, _CharacterCamera.transform);
-    }
-
     public void ClickFireSymbol()
     {
         _FireSkillTree.SetActive(true);
         _SkillsElements.SetActive(false);
     }
-
     public void ClickEarthSymbol()
     {
         _EarthSkillTree.SetActive(true);
         _SkillsElements.SetActive(false);
     }
-
     public void ClickWaterSymbol()
     {
         _WaterSkillTree.SetActive(true);
         _SkillsElements.SetActive(false);
     }
-
     public void ClickAirSymbol()
     {
         _AirSkillTree.SetActive(true);
         _SkillsElements.SetActive(false);
     }
-
-
-
+    public void SetParameter(bool flag)
+    {
+        _Subtitles = flag;
+    }
+    void IMyDataManager.SaveData(ref GameData data)
+    {
+        
+    }
+    void IMyDataManager.LoadData(GameData data)
+    {
+        throw new System.NotImplementedException();
+    }
 }
 

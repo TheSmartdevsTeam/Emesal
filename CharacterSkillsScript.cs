@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class MyCustomButtonScript : MonoBehaviour, ISelectHandler, IPointerEnterHandler, IPointerExitHandler
+public class CharacterSkillsScript : MonoBehaviour, ISelectHandler, IPointerEnterHandler, IPointerExitHandler
 {
     Image SlotBackgroundImage;
     Image SlotBorderImage;
@@ -16,10 +16,10 @@ public class MyCustomButtonScript : MonoBehaviour, ISelectHandler, IPointerEnter
     public int _TalentIndex;
     public bool _Active;
     int Talent11index = 11;
+    int Talent12index = 12;
     GameObject TalentTooltip;
-
     Material _DefaultMaterial;
-    public Material _TalentMaterial;
+    Material _TalentMaterial;
 
     // Start is called before the first frame update
     private void Start()
@@ -27,7 +27,7 @@ public class MyCustomButtonScript : MonoBehaviour, ISelectHandler, IPointerEnter
         SlotBackgroundImage = transform.GetChild(0).GetComponent<Image>();
         SlotBorderImage = transform.GetChild(0).GetChild(0).GetComponent<Image>();
         TalentImage = transform.GetChild(0).GetChild(1).GetComponent<Image>();
-        _TalentIndex = transform.GetComponent<MyCustomButtonScript>()._TalentIndex;
+        _TalentIndex = transform.GetComponent<CharacterSkillsScript>()._TalentIndex;
 
         if (transform.GetChild(0).childCount == 3)
         {
@@ -42,25 +42,25 @@ public class MyCustomButtonScript : MonoBehaviour, ISelectHandler, IPointerEnter
             TalentImage.material = _DefaultMaterial;
         }
     }
-
     private void Update()
     {
-        if(RequiredConnectionImage != null)
+        SetDefaultMaterial();
+    }
+    public void SetDefaultMaterial()
+    {
+        if (RequiredConnectionImage != null)
         {
-            if (RequiredConnectionImage.material.name != "FCA_Material")
+            if (RequiredConnectionImage.material.name != "FCA_Material" && RequiredConnectionImage.material.name != "AlchCon_Material" && RequiredConnectionImage.material.name != "InsCon_Material")
             {
-                /*
-                SlotBackgroundImage.material.name = "Default-Material";
-                SlotBorderImage.material.name = "Default-Material";
-                TalentImage.material.name = "Default-Material";*/
-                if(TalentImage != null)
+
+                if (TalentImage != null)
                 {
                     SlotBackgroundImage.material = _DefaultMaterial;
                     SlotBorderImage.material = _DefaultMaterial;
                     TalentImage.material = _DefaultMaterial;
-                    
+
                 }
-                if(ConnectionImage1 != null)
+                if (ConnectionImage1 != null)
                 {
                     ConnectionImage1.material = _DefaultMaterial;
                 }
@@ -71,16 +71,18 @@ public class MyCustomButtonScript : MonoBehaviour, ISelectHandler, IPointerEnter
 
             }
         }
-        
     }
-
     public bool CheckTalentActivation()
     {
-        if (RequiredConnectionImage != null && RequiredConnectionImage.material.name == "FCA_Material")
+        if (RequiredConnectionImage != null && RequiredConnectionImage.material.name == "FCA_Material" || (RequiredConnectionImage != null && RequiredConnectionImage.material.name == "AlchCon_Material") || (RequiredConnectionImage != null && RequiredConnectionImage.material.name == "InsCon_Material"))
         {
             return true;
         }
         else if (_TalentIndex == Talent11index)
+        {
+            return true;
+        }
+        else if (_TalentIndex == Talent12index)
         {
             return true;
         }
@@ -93,7 +95,6 @@ public class MyCustomButtonScript : MonoBehaviour, ISelectHandler, IPointerEnter
             return false;
         }
     }
-
     public void Act_Talent(Material newMaterial)
     {
         if (CheckTalentActivation())
@@ -102,7 +103,6 @@ public class MyCustomButtonScript : MonoBehaviour, ISelectHandler, IPointerEnter
             {
                 TalentImage.material = newMaterial;
                 _Active = true;
-                
             }
             else
             {
@@ -111,7 +111,6 @@ public class MyCustomButtonScript : MonoBehaviour, ISelectHandler, IPointerEnter
             }
         }
     }
-
     public void Act_Background(Material newMaterial)
     {
         if (CheckTalentActivation())
@@ -140,7 +139,6 @@ public class MyCustomButtonScript : MonoBehaviour, ISelectHandler, IPointerEnter
             }
         }
     }
-
     public void Act_Connection(Material newMaterial)
     {
         if (CheckTalentActivation() && ConnectionImage1 != null)
@@ -166,28 +164,23 @@ public class MyCustomButtonScript : MonoBehaviour, ISelectHandler, IPointerEnter
             }
         }
     }
-
     public void OnTalentsAcceptButtonClick()
     {
         //save changes
-        transform.parent.parent.gameObject.SetActive(false);
-        transform.parent.parent.parent.GetChild(1).gameObject.SetActive(true);
-
+        Debug.Log("SAVED");
     }
-
-    public void OnTalentsExitButtonClick()
+    public void OnTalentsExitButtonClick(GameObject ObjectToActivateOnExit)
     {
         //save changes
         transform.parent.parent.gameObject.SetActive(false);
-        transform.parent.parent.parent.GetChild(1).gameObject.SetActive(true);
+        ObjectToActivateOnExit.SetActive(true);
 
     }
-
     // When highlighted with mouse.
     public void OnPointerEnter(PointerEventData eventData)
     {
         // Do something.
-        Debug.Log("<color=red>Event:</color> Completed mouse highlight.");
+        //Debug.Log("<color=red>Event:</color> Completed mouse highlight.");
         if (TalentTooltip)
         {
             TalentTooltip.SetActive(true);
@@ -204,7 +197,7 @@ public class MyCustomButtonScript : MonoBehaviour, ISelectHandler, IPointerEnter
     public void OnSelect(BaseEventData eventData)
     {
         // Do something.
-        Debug.Log("<color=red>Event:</color> Completed selection.");
+        //Debug.Log("<color=red>Event:</color> Completed selection.");
     }
 
    

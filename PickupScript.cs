@@ -22,6 +22,7 @@ public class PickupScript : CharacterInteractionScript
 
         if (wasPickedUp)
         {
+            gameObject.GetComponent<AudioSource>().enabled = true;
             Destroy(gameObject);
         }
 

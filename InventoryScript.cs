@@ -20,8 +20,12 @@ public class InventoryScript : MonoBehaviour
     #endregion
 
     public List<Item> items = new List<Item>();
-    public int space = 3;
+    public int space;
 
+    private void Start()
+    {
+        space = 62;
+    }
     public bool Add(Item item)
     {
         Debug.Log("Adding item " + item._Name + " to inventory");

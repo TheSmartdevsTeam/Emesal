@@ -6,6 +6,10 @@ using System.Collections.Generic;
 using UnityEngine.Assertions.Must;
 using UnityEngine.Animations;
 using static UnityEngine.GraphicsBuffer;
+using UnityEngine.UIElements;
+using UnityEditor.PackageManager;
+using Unity.Burst.CompilerServices;
+using UnityEngine.AI;
 
 [RequireComponent(typeof(CharacterController))]
 [RequireComponent(typeof(AudioSource))]
@@ -16,9 +20,10 @@ public class CharacterControlScript : MonoBehaviour
 {
     #region VARIABLES
     private ScanTerrainTextureUnderCharacter SCANT;
-    
+
     CharacterController _CharacterController;
     AudioSource _CharacterAudioSource;
+    AudioSource _NonPlayerSounds;
     [SerializeField] private AudioClip _CharacterJumpSound;
     [SerializeField] private AudioClip _CharacterBreathClip;
     [SerializeField] private AudioClip _CharacterLandSound;
@@ -41,6 +46,7 @@ public class CharacterControlScript : MonoBehaviour
     private Animator _CharacterCameraAnimator;
 
     //MOVEMENT
+    public Vector3 _CharacterMoveVector;
     private bool _CharacterWasGrounded;
     private bool _CharacterGrounded;
     private bool _CharacterCrouching;
@@ -92,13 +98,14 @@ public class CharacterControlScript : MonoBehaviour
     [SerializeField] private float _GravityForce;
     private Vector2 _MovementInput;
 
-    public GameObject _CharacterUIMaster;
+    public GameObject _CharacterUIMasterObject;
     private GameObject _Inventory;
     private GameObject _Skills;
     private GameObject _CharacterSheets;
-    
+    private GameObject _Blacksmithing;
 
-    
+
+
     [SerializeField] GameObject _ChargeToUse;
     [SerializeField] GameObject _ChargeSocket;
 
@@ -112,7 +119,7 @@ public class CharacterControlScript : MonoBehaviour
 
     GameObject _ChargingSpell;
     GameObject _CastedSpell;
-   
+
     float _Timer;
     public Transform _ProjectileSpawnPoint;
 
@@ -133,23 +140,25 @@ public class CharacterControlScript : MonoBehaviour
     private Vector3 GravityForceVector;
     public float velocity;
     public float gravityScale;
+    UIMasterScript _UIMasterScript;
     #endregion
     void Start()
     {
-        
+
         SCANT = GetComponent<ScanTerrainTextureUnderCharacter>();
         SCANT.CheckLayers();
-        
+
         _CharacterCamera = Camera.main;
 
         _OriginalCharacterCameraPosition = _CharacterCamera.transform.localPosition;
         _CharacterBodyObject = transform.GetChild(0);
         _CharacterAnimator = _CharacterBodyObject.GetComponent<Animator>();
-        
+
         _CharacterAudioSource = GetComponent<AudioSource>();
+        _NonPlayerSounds = transform.GetChild(1).GetComponent<AudioSource>();
         _CharacterAudioSource.spatialBlend = 1;
         _CharacterAudioSource.rolloffMode = AudioRolloffMode.Linear;
-        
+
         _GetRigidBody.mass = 75;
         _GetRigidBody.drag = 0;
         _GetRigidBody.angularDrag = 0.05f;
@@ -158,7 +167,7 @@ public class CharacterControlScript : MonoBehaviour
         _GetRigidBody.interpolation = RigidbodyInterpolation.None;
         _GetRigidBody.collisionDetectionMode = CollisionDetectionMode.Discrete;
         _GetRigidBody.constraints = RigidbodyConstraints.FreezeRotationY;
-        
+
         _GravityForce = 9f;
         _CharacterController = GetComponent<CharacterController>();
         _CharacterController.slopeLimit = 60;
@@ -175,11 +184,11 @@ public class CharacterControlScript : MonoBehaviour
         _CharacterRuningStep = 3.4f;
 
         _CharacterAttributesScript = GetComponent<CharacterAttributesScript>();
-        
+
         _CharacterWasGrounded = false;
         _CharacterJumped = false;
         _CharacterJumpSpeed = 0.5f;
-        
+
         _CharacterRunning = false;
         _CharacterAiming = false;
         _CharacterAttacking = false;
@@ -192,12 +201,11 @@ public class CharacterControlScript : MonoBehaviour
         _CharacterMinimumMoveSpeed = 0.1f;
         _CharacterCrouching = false;
         _CharacterCrouchSpeed = 2;
-        _CharacterWalkSpeed = 2f;
-        _CharacterRunSpeed = 4f;
+        _CharacterWalkSpeed = 1f;
+        _CharacterRunSpeed = 2f;
         _CharacterMoveMultiplier = 2;
         _CharacterShallowWaterMoveSpeed = 0.5f;
-        _CharacterSwimingWaterDepth = _CharacterController.height-0.05f;
-
+        _CharacterSwimingWaterDepth = _CharacterController.height - 0.05f;
 
         _CharacterSwimmingSpeed = 0.9f;
 
@@ -212,11 +220,11 @@ public class CharacterControlScript : MonoBehaviour
 
         _CharacterCamera = Camera.main;
         _CharacterTransform = GameObject.FindGameObjectWithTag("Player").transform;
-        _Skills = _CharacterUIMaster.transform.GetChild(0).GetChild(2).gameObject;
-        _Inventory = _CharacterUIMaster.transform.GetChild(0).GetChild(0).gameObject;
-        _CharacterSheets = _CharacterUIMaster.transform.GetChild(0).GetChild(1).gameObject;
         
-        //_CharacterCameraAnimator = GetComponent<Animator>();
+        _Inventory = _CharacterUIMasterObject.transform.GetChild(0).GetChild(0).gameObject;
+        _CharacterSheets = _CharacterUIMasterObject.transform.GetChild(0).GetChild(1).gameObject;
+        _Skills = _CharacterUIMasterObject.transform.GetChild(0).GetChild(2).gameObject;
+        _Blacksmithing = _CharacterUIMasterObject.transform.GetChild(3).GetChild(0).gameObject;
 
         _Cursor = gameObject.AddComponent<_MouseLook>();
 
@@ -227,31 +235,31 @@ public class CharacterControlScript : MonoBehaviour
         _Cursor.clampVerticalRotation = true;
         _Cursor.smooth = false;
         _Cursor.smoothTime = 5;
-        //_CursorLastLocation = Input.mousePosition;
-        //_Cursor.lockCursor = true;
-        //_Cursor.SetCursorLock(true);
-
 
         CDS = transform.GetChild(4).GetComponent<CameraDetectionScript>();
-        
+
+        if (_CharacterUIMasterObject.transform.GetChild(0).GetComponent<UIMasterScript>() != null)
+        {
+            _UIMasterScript = _CharacterUIMasterObject.transform.GetChild(0).GetComponent<UIMasterScript>();
+        }
+        else
+        {
+            Debug.Log("Null IUIMaster");
+        }
+
     }
+
     private void Update()
     {
+        
 
     }
     private void LateUpdate()
     {
-        if (_Inventory.activeSelf == false && _Skills.activeSelf == false && _CharacterSheets.activeSelf == false)
+        if (_CharacterUIMasterObject.transform.GetChild(0).GetComponent<UIMasterScript>().CheckUIActive() == false)
         {
             RotateView();
-        }
-    }
-    private void FixedUpdate()
-    {
-        if (CheckInventoryActive() == false)
-        {
             MOVEMENT();
-
             #region COMBAT
             CheckAttack();
             //Interact();
@@ -267,6 +275,9 @@ public class CharacterControlScript : MonoBehaviour
             CheckSpellCast();
             #endregion
         }
+    }
+    private void FixedUpdate()
+    {
     }
     #region MOVEMENT
     private void MOVEMENT()
@@ -290,12 +301,21 @@ public class CharacterControlScript : MonoBehaviour
         {
             _CharacterWaterSurfaceHeight = other.transform.position.y;
         }
+        if(other.GetComponent<AudioSource>() && _Inventory.activeSelf == false)
+        {
+            _NonPlayerSounds.clip = other.GetComponent<AudioSource>().clip;
+            _NonPlayerSounds.Play();
+        }
     }
     private void OnTriggerExit(Collider other)
     {
         if (other.tag == "Water")
         {
             _CharacterCurrentWaterDepth = 0;
+        }
+        if (other.GetComponent<AudioSource>())
+        {
+            _NonPlayerSounds.Stop();
         }
     }
     private void OnTriggerStay(Collider other)
@@ -304,10 +324,14 @@ public class CharacterControlScript : MonoBehaviour
         {
             _CharacterCurrentWaterDepth = (_CharacterWaterSurfaceHeight - (_CharacterCamera.transform.position.y - _CharacterController.height + _CharacterController.skinWidth));
         }
+        if (other.GetComponent<AudioSource>() && _Inventory.activeSelf == true)
+        {
+            _NonPlayerSounds.Stop();
+        }
     }
     private bool CheckInventoryActive()
     {
-        if (_Inventory.activeSelf == true || _Skills.activeSelf == true || _CharacterSheets.activeSelf == true)
+        if (_Inventory.activeSelf == true || _Skills.activeSelf == true || _CharacterSheets.activeSelf == true || _Blacksmithing.activeSelf == true)
         {
             return true;
         }
@@ -333,7 +357,7 @@ public class CharacterControlScript : MonoBehaviour
         {
             _CharacterInAir = true;
         }
-        
+
         if (CDS._GetCharacterSwimming())
         {
             _CharacterInAir = false;
@@ -373,44 +397,46 @@ public class CharacterControlScript : MonoBehaviour
             {
                 velocity = -10;
             }
+
         }
-        
+
     }
     public Vector2 GetInputFromAxis()
     {
         Vector2 input = new Vector2
         {
-            x = Input.GetAxis("Horizontal"),
-            y = Input.GetAxis("Vertical")
+            x = CrossPlatformInputManager.GetAxis("Horizontal"),
+            y = CrossPlatformInputManager.GetAxis("Vertical")
         };
         return input;
     }
-    private void GetInput(out float MoveSpeed)
+    private void GetInput(out float speed)
     {
-        float horizontal = CrossPlatformInputManager.GetAxis("Horizontal");
-        float vertical = CrossPlatformInputManager.GetAxis("Vertical");
-        _MovementInput = new Vector2(horizontal, vertical);
-
+        speed = _CharacterCurrentMoveSpeed;
+        _MovementInput = GetInputFromAxis();
+        _CharacterCurrentMoveSpeed = speed;
+        
         if (_MovementInput.x == 0 && _MovementInput.y == 0)
         {
-            MoveSpeed = 0;
+            speed = 0; 
         }
-        else if (_CharacterCrouching)
+        if (_CharacterCrouching)
         {
-            MoveSpeed = _CharacterCrouchSpeed;
+            speed = _CharacterCrouchSpeed;
         }
         else if (_CharacterRunning)
         {
-            MoveSpeed = _CharacterRunSpeed;
+            speed = _CharacterCurrentMoveSpeed;
         }
         else if (_CharacterSwimming || _CharacterUnderwater)
         {
-            MoveSpeed = _CharacterSwimmingSpeed;
+            speed = _CharacterSwimmingSpeed;
         }
-        else
+        else if (_CharacterWalking)
         {
-            MoveSpeed = _CharacterWalkSpeed;
+            speed = _CharacterWalkSpeed;
         }
+
         if (_MovementInput.sqrMagnitude > 1)
         {
             _MovementInput.Normalize();
@@ -422,12 +448,15 @@ public class CharacterControlScript : MonoBehaviour
     }
     private void CheckJump()
     {
-        if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Space) && Input.anyKey)
+        if(_CharacterAnimator.GetBool("Crouching") == false)
         {
-            velocity = 0;
-            gravityScale = 0;
-            DoJump();
-            MovePlayer();
+            if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Space) && Input.anyKey)
+            {
+                velocity = 0;
+                gravityScale = 0;
+                DoJump();
+                MovePlayer();
+            }
         }
     }
     private void DoJump()
@@ -467,72 +496,58 @@ public class CharacterControlScript : MonoBehaviour
             MovePlayer();
         }
     }
+    private void ActivateCrouch()
+    {
+        if (Input.GetKey(KeyCode.C) && _CharacterAnimator.GetBool("Crouching") == false)
+        {
+            _CharacterAnimator.SetBool("Crouching", true);
+            _CharacterController.height = _CharacterController.height / 2;
+            Debug.Log("TRUE");
+        }
+    }
+    private void ExitCrouch()
+    {
+        if (Input.GetKey(KeyCode.Space) && _CharacterAnimator.GetBool("Crouching") == true)
+        {
+            Debug.Log("FALSE");
+
+            _CharacterAnimator.SetBool("Crouching", false);
+            transform.position = new Vector3(transform.position.x, transform.position.y + 0.23f, transform.position.z);
+            _CharacterController.height = _CharacterController.height * 2;
+        }
+    }
     private void GroundMovement()
     {
-        AdjustMovementToTerrain();
+
         CheckJump();
+        ActivateCrouch();
+        ExitCrouch();
         CheckRunning();
+        //AdjustMovementToTerrain(); 
+        SetUpDesiredMove(_CharacterMoveVector);
         GroundMoveAnimations();
-    }
-    private void SetUpDesiredMove(Vector3 desiredMove, int i)
-    {
-        desiredMove = (transform.forward * _MovementInput.y + transform.right * _MovementInput.x) / i;
-        TerrainBasedMovementToStepCycle(desiredMove, i);
-    }
-    private void AdjustMovementToTerrain()
-    {
-        int i;
-        Vector3 desiredMove = new();
-        if (_CharacterAngle < 60)
-        {
-            if (SCANT._GetCurrentLayer != null && SCANT._GetCurrentLayer.StartsWith("0"))
-            {
-                i = 0;
-                SetUpDesiredMove(desiredMove, i);
-            }
-            else if (SCANT._GetCurrentLayer != null && SCANT._GetCurrentLayer.StartsWith("1"))
-            {
-                i = 1;
-                SetUpDesiredMove(desiredMove, i);
-            }
-            else if (SCANT._GetCurrentLayer != null && SCANT._GetCurrentLayer.StartsWith("2"))
-            {
-                i = 2;
-                SetUpDesiredMove(desiredMove, i);
-            }
-            else
-            {
-                i = 3;
-                SetUpDesiredMove(desiredMove, i);
-            }
-        }
-        else
-        {
-            TerrainBasedMovementToStepCycle(Vector3.down, 4);
-        }
-    }
-    private void TerrainBasedMovementToStepCycle(Vector3 desiredMove, int i)
-    {
-        GetInput(out float speed);
 
-        if (_CharacterAngle > 60 && speed > 0)
-        {
-            _CharacterWalkSpeed = i / 6;
-        }
-        if (_CharacterAngle > 30 && speed > 0)
-        {
-            _CharacterWalkSpeed = i / 3;
-        }
-
-        _ = new RaycastHit();
-        RaycastHit hitInfo;
+    }
+    private void SetUpDesiredMove(Vector3 MoveVector)
+    {
+        GetInput(out _CharacterCurrentMoveSpeed);
+        RaycastHit hitInfo = new RaycastHit();
         Physics.SphereCast(transform.position, _CharacterController.radius, Vector3.down, out hitInfo,
                            _CharacterController.height / 2f, Physics.AllLayers, QueryTriggerInteraction.Ignore);
-        desiredMove = Vector3.ProjectOnPlane(desiredMove, hitInfo.normal).normalized;
-        _CharacterMoveDirection.x = desiredMove.x * speed;
-        _CharacterMoveDirection.z = desiredMove.z * speed;
-
-        ProgressStepCycle(speed);
+        _CharacterAngle = Vector3.Angle(hitInfo.normal, Vector3.up);
+        if (_CharacterAngle > 55)
+        {
+            MoveVector = Vector3.ProjectOnPlane(new Vector3(0, -_GravityForce * _CharacterAngle / 2, 0), hitInfo.normal);
+            _CharacterMoveDirection.x = MoveVector.x * Time.deltaTime;
+            _CharacterMoveDirection.z = MoveVector.z * Time.deltaTime;
+        }
+        if (_CharacterAngle < 55)
+        {
+            MoveVector = (transform.forward * _MovementInput.y * _CharacterCurrentMoveSpeed + transform.right * _MovementInput.x * _CharacterCurrentMoveSpeed);
+            _CharacterMoveDirection.x = MoveVector.x * _CharacterCurrentMoveSpeed;
+            _CharacterMoveDirection.z = MoveVector.z * _CharacterCurrentMoveSpeed;
+        }
+        ProgressStepCycle(_CharacterCurrentMoveSpeed);
     }
     private void ProgressStepCycle(float speed)
     {
@@ -750,13 +765,13 @@ public class CharacterControlScript : MonoBehaviour
     #region REST
     public void CheckAttack()
     {
-        if (/*(Input.GetButtonDown("Attack") ||*/ Input.GetKeyDown(KeyCode.Mouse0))/*Input.GetKeyDown(KeyCode.Mouse0)*/
+        if (Input.GetKeyDown(KeyCode.Mouse0))
         {
-            //_CharacterAnimator.SetBool("Attack", true);
+            _CharacterAnimator.SetBool("Attack", true);
         }
         else
         {
-            // _CharacterAnimator.SetBool("Attack", false);
+            _CharacterAnimator.SetBool("Attack", false);
         }
 
     }
@@ -773,11 +788,11 @@ public class CharacterControlScript : MonoBehaviour
     }
     void SpawnCharge()
     {
-        if(_ChargingSpell == null)
+        if (_ChargingSpell == null)
         {
             _ChargingSpell = Instantiate(_ChargeToUse, _ChargeSocket.transform.position /*_ProjectileSocket.transform.position, Quaternion.identity*/, _CharacterCamera.transform.rotation) as GameObject;
         }
-        
+
         //newProjectile.GetComponent<ProjectileScript>().damageCaused = _ProjectileDamage;
         Vector3 unitVectorToPlayer = (_CharacterCamera.transform.position + _ChargeSocket.transform.position).normalized;
         projectileScript = _ChargingSpell.GetComponent<ProjectileScript>();
@@ -789,11 +804,11 @@ public class CharacterControlScript : MonoBehaviour
     }
     void SpawnProjectile()
     {
-        if(_CastedSpell == null)
+        if (_CastedSpell == null)
         {
             _CastedSpell = Instantiate(_ProjectileToUse, _ProjectileSpawnPoint.transform.position /*_ProjectileSocket.transform.position, Quaternion.identity*/, _CharacterCamera.transform.rotation) as GameObject;
         }
-        
+
         //newProjectile.GetComponent<ProjectileScript>().damageCaused = _ProjectileDamage;
         Vector3 unitVectorToPlayer = (_CharacterCamera.transform.position + _ProjectileSocket.transform.position).normalized;
         projectileScript = _CastedSpell.GetComponent<ProjectileScript>();
@@ -880,12 +895,17 @@ public class CharacterControlScript : MonoBehaviour
     }
     public virtual void Interact()
     {
+        /*
         RaycastHit _CharacterInteractionRayHit;
         if (Input.GetKeyDown(KeyCode.E) && Physics.Raycast(transform.position, _CharacterCamera.transform.forward, out _CharacterInteractionRayHit, 1))
         {
             Item _Item = _CharacterInteractionRayHit.transform.GetComponent<PickupScript>()._Item;
             //Debug.Log(_CharacterInteractionRayHit.transform.GetComponent<PickupScript>()._Item.name);
         }
+        else
+        {
+            Debug.Log(Physics.Raycast(transform.position, _CharacterCamera.transform.forward, out _CharacterInteractionRayHit, 1));
+        }*/
     }
     private void SetFocusOnInteractedObject(CharacterInteractionScript newObjectFocus)
     {
