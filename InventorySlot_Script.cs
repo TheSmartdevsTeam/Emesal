@@ -1,10 +1,9 @@
-using JetBrains.Annotations;
-using Mono.Cecil;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class InventorySlot_Script : MonoBehaviour
+
+public class InventorySlot_Script : MonoBehaviour, IDropHandler
 {
     Item item;
     public Image icon;
@@ -19,7 +18,6 @@ public class InventorySlot_Script : MonoBehaviour
 
     public void AddItem (Item newItem)
     {
-        
         item = newItem;
         icon.color = new Color(1, 1, 1, 1);
         icon.sprite = item._Icon;
@@ -46,7 +44,6 @@ public class InventorySlot_Script : MonoBehaviour
     {
         if (item != null)
         {
-            
             if(_PropertiesPanel.activeInHierarchy == true)
             {
                 _ActivePanel = true;
@@ -63,36 +60,12 @@ public class InventorySlot_Script : MonoBehaviour
                 _PropertiesPanel.SetActive(true);
                 _ActivePanel = true;
             }
-
         }   
-    }
-
-    public void OnExitButtonClick()
-    {
-        if (_CombineFlag == false)
-        {
-            _PropertiesPanel.SetActive(false);
-            _ActivePanel = false;
-        }
-    }
-
-    public void OnInfoButtonClick()
-    {
-        _PropertiesMenuParent.transform.GetChild(6).GetChild(1).gameObject.SetActive(true);
-    }
-
-    public void OnInfoExitButtonClick()
-    {
-        _PropertiesMenuParent.transform.GetChild(6).GetChild(1).gameObject.SetActive(false);
-    }
-    public void OnCombineButtonClick()
-    {
-        _PropertiesMenuParent.transform.GetChild(4).GetChild(1).gameObject.SetActive(true);
     }
 
     public void OnCombineConfirmButtonClick()
     {
-        _PropertiesMenuParent.transform.GetChild(4).GetChild(1).gameObject.SetActive(false);
+        _PropertiesMenuParent.transform.GetChild(2).GetChild(1).gameObject.SetActive(false);
         _PropertiesMenuParent.transform.parent.gameObject.SetActive(false);
         //select item to combine
         if (item != null)
@@ -110,10 +83,7 @@ public class InventorySlot_Script : MonoBehaviour
             }
         } 
     }
-    public void OnCombineExitButtonClick()
-    {
-        _PropertiesMenuParent.transform.GetChild(4).GetChild(1).gameObject.SetActive(false);
-    }
+
     public void UseItem()
     {
         if(item != null)
@@ -124,13 +94,10 @@ public class InventorySlot_Script : MonoBehaviour
         }
     }
 
-    
-
     public void InventoryClosed()
     {
         _CombineFlag = false;
         _ActivePanel = false;
-
         
     }
 
@@ -139,11 +106,8 @@ public class InventorySlot_Script : MonoBehaviour
         if(_PropertiesPanel != null)
         {
             _PropertiesPanel.SetActive(false);
-            _PropertiesMenuParent.transform.GetChild(4).GetChild(1).gameObject.SetActive(false);
-            _PropertiesMenuParent.transform.GetChild(6).GetChild(1).gameObject.SetActive(false);
             _PropertiesMenuParent.transform.parent.gameObject.SetActive(false);
         }
-        
     }
 
     public Item GetItem()
@@ -156,5 +120,13 @@ public class InventorySlot_Script : MonoBehaviour
         _ActivePanel = value; 
     }
 
-    
+    void IDropHandler.OnDrop(PointerEventData eventData)
+    {
+        //Debug.Log(transform.GetChild(0).GetChild(2).GetComponent<Image>().name);
+        if(transform.GetChild(0).GetChild(0).GetComponent<Image>().enabled == true) { 
+            GameObject dropped = eventData.pointerDrag;
+            DraggableScript draggableItem = dropped.GetComponent<DraggableScript>();
+            draggableItem._ParentAfterDrag = transform;
+        }
+    }
 }

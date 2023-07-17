@@ -11,6 +11,7 @@ public class Item : ScriptableObject
     public int _ItemWeigth;
     public bool _CanBeCombined;
     public int _CombineNumber;
+    public int _RequiredSlots;
     public virtual void Use()
     {
         Debug.Log("Using " + _Name);

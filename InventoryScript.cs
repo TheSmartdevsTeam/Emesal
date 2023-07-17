@@ -1,6 +1,6 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class InventoryScript : MonoBehaviour
 {
@@ -21,10 +21,14 @@ public class InventoryScript : MonoBehaviour
 
     public List<Item> items = new List<Item>();
     public int space;
+    public GameObject _SlotsParent;
+    int i = 0;
 
     private void Start()
     {
         space = 62;
+        _SlotsParent = transform.GetChild(1).GetChild(0).gameObject;
+        //space = _SlotsParent.transform.GetChildCount();
     }
     public bool Add(Item item)
     {
@@ -37,6 +41,9 @@ public class InventoryScript : MonoBehaviour
         else
         {
             items.Add(item);
+            _SlotsParent.transform.GetChild(i).GetChild(0).GetChild(0).GetComponent<Image>().enabled = true;
+            i++;
+            
             if(onItemChangedCallBack != null)
             {
                 onItemChangedCallBack.Invoke();

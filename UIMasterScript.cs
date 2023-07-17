@@ -3,10 +3,10 @@ using UnityEngine;
 public class UIMasterScript : MonoBehaviour, IMyDataManager
 {
     [SerializeField] private _MouseLook _Cursor;
-    GameObject _CharacterUIMasterObject;
     public GameObject _Player;
     public Transform _CharacterTransform;
     public Camera _CharacterCamera;
+    GameObject _CharacterPreviewObject;
     public Animator _CharacterAnimator;
     GameObject _CharacterSheets;
     public bool _MouseLookBool;
@@ -25,14 +25,13 @@ public class UIMasterScript : MonoBehaviour, IMyDataManager
     GameObject _SkillsElements;
     void Start()
     {
-        _CharacterUIMasterObject = transform.parent.gameObject;
         _Player = GameObject.FindGameObjectWithTag("Player");
         #region Cursor SetUp
         _Cursor = gameObject.AddComponent<_MouseLook>();
         _Cursor.lockCursor = true;
         _Cursor.SetCursorLock(true);
-        _CursorCanvas = _CharacterUIMasterObject.transform.GetChild(3).gameObject;
         Cursor.visible = false;
+        _CursorCanvas = transform.parent.GetChild(3).gameObject;
         #endregion
 
         _CharacterCamera = Camera.main;
@@ -41,14 +40,15 @@ public class UIMasterScript : MonoBehaviour, IMyDataManager
 
         inventory = InventoryScript.instance;
         inventory.onItemChangedCallBack += UpdateUI;
-        _SlotsParent = _CharacterUIMasterObject.transform.GetChild(0).GetChild(0).GetChild(1);
+        _SlotsParent = transform.GetChild(0).GetChild(1).GetChild(0);
         _slots = _SlotsParent.GetComponentsInChildren<InventorySlot_Script>();
         _FireSkillTree = transform.GetChild(2).GetChild(0).GetChild(0).GetChild(2).gameObject;
         _EarthSkillTree = transform.GetChild(2).GetChild(0).GetChild(0).GetChild(3).gameObject;
         _WaterSkillTree = transform.GetChild(2).GetChild(0).GetChild(0).GetChild(4).gameObject;
         _AirSkillTree = transform.GetChild(2).GetChild(0).GetChild(0).GetChild(5).gameObject;
         _SkillsElements = _SkillsGameObject.transform.GetChild(0).GetChild(0).GetChild(1).gameObject;
-        _CharacterSheets = _CharacterUIMasterObject.transform.GetChild(0).GetChild(1).gameObject;
+        _CharacterSheets = transform.GetChild(1).gameObject;
+        _CharacterPreviewObject = transform.parent.parent.parent.GetChild(1).gameObject;
 
         
     }
@@ -93,19 +93,21 @@ public class UIMasterScript : MonoBehaviour, IMyDataManager
         {
             EnableCursor();
             UICullingMask();
+            _CharacterPreviewObject.gameObject.SetActive(true);
         }
         else
         {
             DisableCursor();
             EverythingCullingMask();
+            _CharacterPreviewObject.gameObject.SetActive(false);
         }
     }
     public bool CheckUIActive()
     {
         bool var = false;
-        for (int i = 0; i < _CharacterUIMasterObject.transform.GetChild(0).childCount; i++)
+        for (int i = 0; i < transform.childCount; i++)
         {
-            if (_CharacterUIMasterObject.transform.GetChild(0).GetChild(i).gameObject.activeSelf)
+            if (transform.GetChild(i).gameObject.activeSelf)
             {
                 var = true;
             }

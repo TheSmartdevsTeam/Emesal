@@ -3,13 +3,6 @@ using System.Collections;
 using UnityStandardAssets.CrossPlatformInput;
 using Random = UnityEngine.Random;
 using System.Collections.Generic;
-using UnityEngine.Assertions.Must;
-using UnityEngine.Animations;
-using static UnityEngine.GraphicsBuffer;
-using UnityEngine.UIElements;
-using UnityEditor.PackageManager;
-using Unity.Burst.CompilerServices;
-using UnityEngine.AI;
 
 [RequireComponent(typeof(CharacterController))]
 [RequireComponent(typeof(AudioSource))]
@@ -98,7 +91,7 @@ public class CharacterControlScript : MonoBehaviour
     [SerializeField] private float _GravityForce;
     private Vector2 _MovementInput;
 
-    public GameObject _CharacterUIMasterObject;
+    public GameObject _CharacterUI;
     private GameObject _Inventory;
     private GameObject _Skills;
     private GameObject _CharacterSheets;
@@ -221,10 +214,10 @@ public class CharacterControlScript : MonoBehaviour
         _CharacterCamera = Camera.main;
         _CharacterTransform = GameObject.FindGameObjectWithTag("Player").transform;
         
-        _Inventory = _CharacterUIMasterObject.transform.GetChild(0).GetChild(0).gameObject;
-        _CharacterSheets = _CharacterUIMasterObject.transform.GetChild(0).GetChild(1).gameObject;
-        _Skills = _CharacterUIMasterObject.transform.GetChild(0).GetChild(2).gameObject;
-        _Blacksmithing = _CharacterUIMasterObject.transform.GetChild(3).GetChild(0).gameObject;
+        _Inventory = _CharacterUI.transform.GetChild(0).GetChild(0).gameObject;
+        _CharacterSheets = _CharacterUI.transform.GetChild(0).GetChild(1).gameObject;
+        _Skills = _CharacterUI.transform.GetChild(0).GetChild(2).gameObject;
+        _Blacksmithing = _CharacterUI.transform.GetChild(3).GetChild(0).gameObject;
 
         _Cursor = gameObject.AddComponent<_MouseLook>();
 
@@ -238,17 +231,16 @@ public class CharacterControlScript : MonoBehaviour
 
         CDS = transform.GetChild(4).GetComponent<CameraDetectionScript>();
 
-        if (_CharacterUIMasterObject.transform.GetChild(0).GetComponent<UIMasterScript>() != null)
+        if (_CharacterUI.transform.GetChild(0).GetComponent<UIMasterScript>() != null)
         {
-            _UIMasterScript = _CharacterUIMasterObject.transform.GetChild(0).GetComponent<UIMasterScript>();
+            _UIMasterScript = _CharacterUI.transform.GetChild(0).GetComponent<UIMasterScript>();
         }
         else
         {
-            Debug.Log("Null IUIMaster");
+            Debug.Log("Null UIMaster");
         }
 
     }
-
     private void Update()
     {
         
@@ -256,7 +248,7 @@ public class CharacterControlScript : MonoBehaviour
     }
     private void LateUpdate()
     {
-        if (_CharacterUIMasterObject.transform.GetChild(0).GetComponent<UIMasterScript>().CheckUIActive() == false)
+        if (_CharacterUI.transform.GetChild(0).GetComponent<UIMasterScript>().CheckUIActive() == false)
         {
             RotateView();
             MOVEMENT();
@@ -327,17 +319,6 @@ public class CharacterControlScript : MonoBehaviour
         if (other.GetComponent<AudioSource>() && _Inventory.activeSelf == true)
         {
             _NonPlayerSounds.Stop();
-        }
-    }
-    private bool CheckInventoryActive()
-    {
-        if (_Inventory.activeSelf == true || _Skills.activeSelf == true || _CharacterSheets.activeSelf == true || _Blacksmithing.activeSelf == true)
-        {
-            return true;
-        }
-        else
-        {
-            return false;
         }
     }
     private void RotateView()
@@ -448,7 +429,7 @@ public class CharacterControlScript : MonoBehaviour
     }
     private void CheckJump()
     {
-        if(_CharacterAnimator.GetBool("Crouching") == false)
+        if(_CharacterAnimator.GetBool("Crouching") == false && _CharacterInAir == false)
         {
             if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Space) && Input.anyKey)
             {
@@ -493,7 +474,6 @@ public class CharacterControlScript : MonoBehaviour
         if (_CharacterGrounded)
         {
             GroundMovement();
-            MovePlayer();
         }
     }
     private void ActivateCrouch()
@@ -518,15 +498,12 @@ public class CharacterControlScript : MonoBehaviour
     }
     private void GroundMovement()
     {
-
         CheckJump();
         ActivateCrouch();
         ExitCrouch();
         CheckRunning();
-        //AdjustMovementToTerrain(); 
         SetUpDesiredMove(_CharacterMoveVector);
         GroundMoveAnimations();
-
     }
     private void SetUpDesiredMove(Vector3 MoveVector)
     {
@@ -547,6 +524,11 @@ public class CharacterControlScript : MonoBehaviour
             _CharacterMoveDirection.x = MoveVector.x * _CharacterCurrentMoveSpeed;
             _CharacterMoveDirection.z = MoveVector.z * _CharacterCurrentMoveSpeed;
         }
+        if (_CharacterCurrentMoveSpeed > 0)
+        {
+            MovePlayer();
+        }
+        
         ProgressStepCycle(_CharacterCurrentMoveSpeed);
     }
     private void ProgressStepCycle(float speed)
@@ -739,7 +721,6 @@ public class CharacterControlScript : MonoBehaviour
     }
     #endregion
 
-
     /*public void CheckJumpingOnSolidGround()
     {
         if (_CharacterJumped == false && Input.GetKeyDown(KeyCode.Space) && !_CharacterCrouching && !_CharacterUnderwater && !_CharacterSwimming)
@@ -760,7 +741,6 @@ public class CharacterControlScript : MonoBehaviour
             }        
         }
     }*/
-
 
     #region REST
     public void CheckAttack()
