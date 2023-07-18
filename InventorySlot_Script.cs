@@ -122,11 +122,13 @@ public class InventorySlot_Script : MonoBehaviour, IDropHandler
 
     void IDropHandler.OnDrop(PointerEventData eventData)
     {
-        //Debug.Log(transform.GetChild(0).GetChild(2).GetComponent<Image>().name);
-        if(transform.GetChild(0).GetChild(0).GetComponent<Image>().enabled == true) { 
+        if (transform.GetChild(0).GetComponent<Image>().sprite.name == "Empty")
+        {
             GameObject dropped = eventData.pointerDrag;
             DraggableScript draggableItem = dropped.GetComponent<DraggableScript>();
             draggableItem._ParentAfterDrag = transform;
         }
+        
+
     }
 }

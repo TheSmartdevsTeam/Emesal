@@ -41,7 +41,7 @@ public class InventoryScript : MonoBehaviour
         else
         {
             items.Add(item);
-            _SlotsParent.transform.GetChild(i).GetChild(0).GetChild(0).GetComponent<Image>().enabled = true;
+            //_SlotsParent.transform.GetChild(i).GetChild(0).GetComponent<Image>().enabled = true;
             i++;
             
             if(onItemChangedCallBack != null)

@@ -66,7 +66,7 @@ public class UIMasterScript : MonoBehaviour, IMyDataManager
                     _slots[i].AddItem(inventory.items[i]);
                 }
                 
-                if (_slots[i].transform.GetChild(0).GetChild(3).gameObject.activeSelf)
+                if (_slots[i].transform.GetChild(3).gameObject.activeSelf)
                 {
                     _slots[i].SetActivePanel(true);
                 }
