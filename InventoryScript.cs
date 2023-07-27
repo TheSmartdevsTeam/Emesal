@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -22,7 +23,6 @@ public class InventoryScript : MonoBehaviour
     public List<Item> items = new List<Item>();
     public int space;
     public GameObject _SlotsParent;
-    int i = 0;
 
     private void Start()
     {
@@ -41,8 +41,6 @@ public class InventoryScript : MonoBehaviour
         else
         {
             items.Add(item);
-            //_SlotsParent.transform.GetChild(i).GetChild(0).GetComponent<Image>().enabled = true;
-            i++;
             
             if(onItemChangedCallBack != null)
             {

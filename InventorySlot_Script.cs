@@ -16,6 +16,39 @@ public class InventorySlot_Script : MonoBehaviour, IDropHandler
     public static bool _CombineFlag;
     public static bool _ActivePanel;
 
+
+    private void Update()
+    {
+        if (!transform.GetChild(0).name.Contains("Icon"))
+        {
+            for(int i = 1; i < transform.childCount; i++)
+            {
+                if (transform.GetChild(i).gameObject.name.Contains("Icon"))
+                {
+                    transform.GetChild(i).SetAsFirstSibling();
+                }
+                if(transform.GetChild(i).gameObject.GetComponent<Image>() && transform.GetChild(i).gameObject.GetComponent<Image>().sprite.name != "EmptyIcon") {
+                    if(transform.GetChild(i).gameObject.GetComponent<Button>())
+                    {
+                        transform.GetChild(i).gameObject.GetComponent<Button>().enabled = true;
+                    }
+                    
+                }
+                else
+                {
+                    if (transform.GetChild(i).gameObject.GetComponent<Button>())
+                    {
+                        transform.GetChild(i).gameObject.GetComponent<Button>().enabled = false;
+                    }
+                    if(transform.GetChild(i).gameObject.GetComponent<Image>())
+                    {
+                        transform.GetChild(i).gameObject.GetComponent<Image>().raycastTarget = false;
+                    }
+                    
+                }
+            }
+        }
+    }
     public void AddItem (Item newItem)
     {
         item = newItem;

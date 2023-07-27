@@ -16,10 +16,8 @@ public class PickupScript : CharacterInteractionScript
 
     void PickUp()
     {
-
         bool wasPickedUp = InventoryScript.instance.Add(_Item);
         wasPickedUp = true;
-
 
         if (wasPickedUp)
         {
