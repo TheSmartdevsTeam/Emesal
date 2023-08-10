@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -16,14 +17,15 @@ public class InventorySlot_Script : MonoBehaviour, IDropHandler
     public static bool _CombineFlag;
     public static bool _ActivePanel;
 
-
     private void Update()
     {
-        if (!transform.GetChild(0).name.Contains("Icon"))
+
+        /*
+        if (!transform.GetChild(0).name.Contains("Item"))
         {
             for(int i = 1; i < transform.childCount; i++)
             {
-                if (transform.GetChild(i).gameObject.name.Contains("Icon"))
+                if (transform.GetChild(i).gameObject.name.Contains("Item"))
                 {
                     transform.GetChild(i).SetAsFirstSibling();
                 }
@@ -47,7 +49,7 @@ public class InventorySlot_Script : MonoBehaviour, IDropHandler
                     
                 }
             }
-        }
+        }*/
     }
     public void AddItem (Item newItem)
     {

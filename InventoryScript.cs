@@ -23,7 +23,7 @@ public class InventoryScript : MonoBehaviour
     public List<Item> items = new List<Item>();
     public int space;
     public GameObject _SlotsParent;
-
+    
     private void Start()
     {
         space = 62;
@@ -32,7 +32,7 @@ public class InventoryScript : MonoBehaviour
     }
     public bool Add(Item item)
     {
-        Debug.Log("Adding item " + item._Name + " to inventory");
+        //Debug.Log("Adding item " + item._Name + " to inventory");
         if (items.Count >= space)
         {
             Debug.Log("Not enough room in inventory!");

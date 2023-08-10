@@ -1,3 +1,4 @@
+using UnityEditor;
 using UnityEngine;
 
 public class UIMasterScript : MonoBehaviour, IMyDataManager
@@ -23,6 +24,7 @@ public class UIMasterScript : MonoBehaviour, IMyDataManager
     GameObject _WaterSkillTree;
     GameObject _AirSkillTree;
     GameObject _SkillsElements;
+    DraggableScript ds;
     void Start()
     {
         _Player = GameObject.FindGameObjectWithTag("Player");
@@ -49,16 +51,15 @@ public class UIMasterScript : MonoBehaviour, IMyDataManager
         _SkillsElements = _SkillsGameObject.transform.GetChild(0).GetChild(0).GetChild(1).gameObject;
         _CharacterSheets = transform.GetChild(1).gameObject;
         _CharacterPreviewObject = transform.parent.parent.parent.GetChild(1).gameObject;
-
-        
+        ds = transform.GetChild(0).GetChild(1).GetChild(0).GetChild(0).GetChild(0).GetComponent<DraggableScript>();
     }
 
     private void UpdateUI()
     {
-        Debug.Log("UPDATING UI");
+        //Debug.Log("UPDATING UI");
         for (int i=0;i<_slots.Length-1;i++)
         {
-            Debug.Log("Items in inventory: " + inventory.items.Count);
+            //Debug.Log("Items in inventory: " + inventory.items.Count);
             if(i<inventory.items.Count)
             {
                 if (inventory.items[i] != null)
@@ -134,9 +135,8 @@ public class UIMasterScript : MonoBehaviour, IMyDataManager
     }
     public void CheckInventory()
     {
-        if (Input.GetKeyDown(KeyCode.Tab) && _Inventory.activeSelf == false)
+        if (Input.GetKeyDown(KeyCode.Tab) && _Inventory.activeSelf == false )
         {
-            transform.gameObject.GetComponentInChildren<InventoryScript>().gameObject.SetActive(true);
             _CharacterAnimator.SetBool("Backpack", true);
             _Inventory.gameObject.SetActive(true);
             _CharacterSheets.gameObject.SetActive(false);
@@ -144,7 +144,7 @@ public class UIMasterScript : MonoBehaviour, IMyDataManager
             _Player.transform.GetChild(2).gameObject.SetActive(false); ;
             _MouseLookBool = true;
         }
-        else if (Input.GetKeyDown(KeyCode.Tab))
+        else if (Input.GetKeyDown(KeyCode.Tab) && ds._ItemInHand == false)
         {
             _CharacterAnimator.SetBool("Backpack", false);
             _Inventory.gameObject.SetActive(false);
@@ -152,7 +152,7 @@ public class UIMasterScript : MonoBehaviour, IMyDataManager
             _MouseLookBool = false;
             iss.InventoryClosed();
         }
-        else if (_Inventory.gameObject.activeInHierarchy == true)
+        else if (_Inventory.gameObject.activeInHierarchy == true && ds._ItemInHand == false)
         {
             if (Input.GetKeyDown(KeyCode.Q))
             {
